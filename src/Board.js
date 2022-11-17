@@ -29,18 +29,16 @@ import _ from "lodash";
  *
  **/
 
-function Board({ nrows = 3, ncols = 3, chanceLightStartsOn }) {
+function Board({ nrows = 4, ncols = 3, chanceLightStartsOn = 0.75 }) {
   const [board, setBoard] = useState(createBoard());
 
   /** create a board nrows high/ncols wide, each cell randomly lit or unlit */
   function createBoard() {
-    const options = [true, false];
-
     const initialBoard = [];
     for (let i = 0; i < nrows; i++) {
       const row = [];
       for (let j = 0; j < ncols; j++) {
-        row.push(_.sample(options));
+        row.push(Math.random() <= chanceLightStartsOn);
       }
       initialBoard.push(row);
     }
@@ -50,12 +48,12 @@ function Board({ nrows = 3, ncols = 3, chanceLightStartsOn }) {
   }
 
   function hasWon() {
-    return board.every(row => row.every(cell => cell === false));
+    return board.every((row) => row.every((cell) => cell === false));
     // TODO: check the board in state to determine whether the player has won.
   }
 
   function flipCellsAround(coord) {
-    setBoard(oldBoard => {
+    setBoard((oldBoard) => {
       const [y, x] = coord.split("-").map(Number);
 
       const flipCell = (y, x, boardCopy) => {
@@ -66,17 +64,20 @@ function Board({ nrows = 3, ncols = 3, chanceLightStartsOn }) {
         }
       };
 
-
       // TODO: Make a (deep) copy of the oldBoard
       const newBoard = _.cloneDeep(oldBoard);
 
       // TODO: in the copy, flip this cell and the cells around it
-      const neighboringCells = [[x,y], [x, y + 1], [x, y - 1], [x + 1, y], [x - 1, y]];
+      const neighboringCells = [
+        [y, x],
+        [y + 1, x],
+        [y - 1, x],
+        [y, x + 1],
+        [y, x - 1],
+      ];
 
-      for (const [x,y] of neighboringCells){
-        if (x in newBoard && y in newBoard[x]){
-          newBoard[x][y] = !newBoard[x][y];
-        }
+      for (const [y, x] of neighboringCells) {
+        flipCell(y, x, newBoard);
       }
 
       return newBoard;
@@ -89,6 +90,33 @@ function Board({ nrows = 3, ncols = 3, chanceLightStartsOn }) {
   // TODO
 
   // make table board
+
+  // const style = {
+  //   display: "grid",
+  //   gridTemplateColumns: `repeat(${ncols}, 1fr)`,
+  // };
+
+  const boardUI = (
+    <table className="Board">
+      <tbody>
+        {board.map((row, r) => (
+          <tr key={r}>
+            {row.map((value, c) => (
+              <Cell
+                key={`${r}-${c}`}
+                isLit={value}
+                flipCellsAroundMe={(evt) => flipCellsAround(`${r}-${c}`)}
+              />
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  const won = <span>"You Won"</span>;
+
+  return hasWon() ? won : boardUI;
 
   // TODO
 }
