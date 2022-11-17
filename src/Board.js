@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Cell from "./Cell";
 import "./Board.css";
+// import _ from "underscore"
+import _ from "lodash";
 
 /** Game board of Lights out.
  *
@@ -27,17 +29,28 @@ import "./Board.css";
  *
  **/
 
-function Board({ nrows, ncols, chanceLightStartsOn }) {
+function Board({ nrows = 3, ncols = 3, chanceLightStartsOn }) {
   const [board, setBoard] = useState(createBoard());
 
   /** create a board nrows high/ncols wide, each cell randomly lit or unlit */
   function createBoard() {
-    let initialBoard = [];
+    const options = [true, false];
+
+    const initialBoard = [];
+    for (let i = 0; i < nrows; i++) {
+      const row = [];
+      for (let j = 0; j < ncols; j++) {
+        row.push(_.sample(options));
+      }
+      initialBoard.push(row);
+    }
+
     // TODO: create array-of-arrays of true/false values
     return initialBoard;
   }
 
   function hasWon() {
+    return board.every(row => row.every(cell => cell === false));
     // TODO: check the board in state to determine whether the player has won.
   }
 
@@ -53,10 +66,20 @@ function Board({ nrows, ncols, chanceLightStartsOn }) {
         }
       };
 
+
       // TODO: Make a (deep) copy of the oldBoard
+      const newBoard = _.cloneDeep(oldBoard);
 
       // TODO: in the copy, flip this cell and the cells around it
+      const neighboringCells = [[x,y], [x, y + 1], [x, y - 1], [x + 1, y], [x - 1, y]];
 
+      for (const [x,y] of neighboringCells){
+        if (x in newBoard && y in newBoard[x]){
+          newBoard[x][y] = !newBoard[x][y];
+        }
+      }
+
+      return newBoard;
       // TODO: return the copy
     });
   }
